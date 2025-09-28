@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 9 (Tricky Words) - Fun Typing!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- General & Background Styles --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(45deg, #89f7fe, #66a6ff);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 1100px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        /* --- Stats and Progress Bar --- */
+        .stats-bar { display: flex; justify-content: space-around; margin-bottom: 15px; }
+        .stat-box { text-align: center; color: #333; width: 150px; }
+        .stat-label { font-size: 0.8rem; font-weight: 600; color: #555; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: #0077ff; line-height: 1; }
+        .stat-unit { font-size: 0.9rem; color: #444; }
+        .progress-bar-container { width: 100%; height: 15px; background-color: rgba(0, 0, 0, 0.1); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background-color: #4caf50; border-radius: 10px; transition: width 0.3s ease-out; }
+
+        /* --- Main Typing Area (Scrolling Logic) --- */
+        .text-to-type {
+            background: #fff; border-radius: 10px; padding: 15px 20px; font-size: 1.6rem;
+            font-family: monospace; letter-spacing: 2px; color: #aaa; margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); line-height: 1.6;
+            height: 5.2em; /* 2-line height */
+            overflow: hidden; position: relative;
+        }
+        #text-wrapper { position: relative; transition: transform 0.4s ease-in-out; }
+
+        /* Character Styling */
+        #text-wrapper span { transition: color 0.2s, background-color 0.2s; }
+        #text-wrapper span.current { color: #333; background-color: #ffdd57; border-radius: 4px; animation: pulse 1.5s infinite; }
+        #text-wrapper span.correct { color: #4caf50; }
+        #text-wrapper span.incorrect { color: #f44336; text-decoration: underline; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* --- Virtual Keyboard --- */
+        .virtual-keyboard { padding: 10px; }
+        .keyboard-row { display: flex; justify-content: center; margin-bottom: 6px; }
+        .key {
+            background: linear-gradient(to top, #e0e0e0, #ffffff); border: 1px solid #ccc; border-radius: 6px;
+            color: #333; font-size: 0.9rem; font-weight: 600; width: 50px; height: 50px;
+            display: flex; justify-content: center; align-items: center; margin: 3px;
+            box-shadow: 0 3px 0 #b0b0b0, 0 5px 6px rgba(0,0,0,0.2); transition: all 0.1s ease-out;
+        }
+        .key.active { transform: translateY(2px); box-shadow: 0 1px 0 #b0b0b0; }
+        .key.hint { background: linear-gradient(to top, #4caf50, #81c784); color: white; box-shadow: 0 3px 0 #388e3c, 0 5px 6px rgba(76, 175, 80, 0.4); }
+        .key[data-key="backspace"] { width: 106px; } .key[data-key="tab"], .key[data-key="\\"] { width: 78px; }
+        .key[data-key="capslock"] { width: 92px; } .key[data-key="enter"] { width: 100px; }
+        .key[data-key="shift"] { width: 125px; } .key[data-key=" "] { width: 350px; }
+
+        /* --- Congrats Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { background: white; color: #333; padding: 40px; border-radius: 20px; text-align: center; transform: scale(0.8); transition: transform 0.3s ease; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { font-size: 2.5rem; color: #ff9800; margin-bottom: 10px; }
+        .modal-content p { font-size: 1.2rem; margin-bottom: 20px; }
+        .final-stats { display: flex; justify-content: space-evenly; margin-bottom: 30px; font-size: 1.2rem; }
+        .final-stats strong { color: #0077ff; }
+        .next-lesson-btn { background: #4caf50; color: white; border: none; border-radius: 50px; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); transition: all 0.3s ease; }
+        .next-lesson-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6); }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="stats-bar">
+            </div>
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="text-to-type" class="text-to-type">
+            <div id="text-wrapper"></div>
+        </div>
+        <div id="virtual-keyboard" class="virtual-keyboard"></div>
+    </div>
+    <div id="congrats-modal" class="modal-overlay">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const textToTypeElement = document.getElementById('text-to-type');
+            const textWrapper = document.getElementById('text-wrapper');
+            const virtualKeyboard = document.getElementById('virtual-keyboard');
+            const congratsModal = document.getElementById('congrats-modal');
+            const statsBar = document.querySelector('.stats-bar');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // NEW for Lesson 9: Tricky words, contractions, and a tongue twister
+            const lessonText = `It's necessary to address all the different challenges. I'll look for the book you mentioned tomorrow. They're going to see the success of their continuous effort. "She sells seashells," he said.`;
+            
+            // This lesson includes quotes, so we need the shift map for it.
+            const shiftMap = { '"': "'" };
+
+            let currentIndex = 0;
+            let correctChars = 0;
+            let incorrectChars = 0;
+            let startTime = null;
+            let timerInterval = null;
+
+            function initLesson() {
+                // Populate the dynamic elements
+                statsBar.innerHTML = `<div class="stat-box"><div class="stat-label">SPEED</div><div id="wpm-stat" class="stat-value">0</div><div class="stat-unit">WPM</div></div><div class="stat-box"><div class="stat-label">ACCURACY</div><div id="accuracy-stat" class="stat-value">100</div><div class="stat-unit">%</div></div>`;
+                congratsModal.innerHTML = `<div class="modal-content"><h2>🧠 Brainy! 🧠</h2><p>Lesson 9 Complete!</p><div class="final-stats"><div>Speed: <strong id="final-wpm">0 WPM</strong></div><div>Accuracy: <strong id="final-accuracy">100%</strong></div></div><button id="nextLessonBtn" class="next-lesson-btn">Go to Lesson 10</button></div>`;
+                
+                textWrapper.innerHTML = lessonText.split('').map(char => `<span>${char}</span>`).join('');
+                textWrapper.children[0].classList.add('current');
+                generateKeyboard();
+                highlightKeyHint();
+
+                document.getElementById('nextLessonBtn').addEventListener('click', () => {
+                    window.location.href = `lesson10.html`;
+                });
+            }
+
+            function generateKeyboard() {
+                const keyboardLayout = [
+                    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'backspace'],
+                    ['tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+                    ['capslock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", 'enter'],
+                    ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'shift'],
+                    ['ctrl', 'alt', ' ', 'alt', 'ctrl']
+                ];
+                virtualKeyboard.innerHTML = '';
+                keyboardLayout.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'keyboard-row';
+                    row.forEach(key => {
+                        const keyDiv = document.createElement('div');
+                        keyDiv.className = 'key';
+                        keyDiv.textContent = key.length > 1 && key !== ' ' ? key.charAt(0).toUpperCase() + key.slice(1) : key;
+                        keyDiv.dataset.key = key;
+                        rowDiv.appendChild(keyDiv);
+                    });
+                    virtualKeyboard.appendChild(rowDiv);
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                e.preventDefault();
+                if (currentIndex >= lessonText.length) return;
+
+                if (!startTime) {
+                    startTime = new Date();
+                    timerInterval = setInterval(updateStats, 1000);
+                }
+
+                const keyElement = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('active');
+                    setTimeout(() => keyElement.classList.remove('active'), 100);
+                }
+
+                const currentSpan = textWrapper.children[currentIndex];
+                const expectedChar = currentSpan.textContent;
+                
+                if (e.key === expectedChar) {
+                    correctChars++;
+                    currentSpan.classList.remove('current', 'incorrect');
+                    currentSpan.classList.add('correct');
+                    currentIndex++;
+                    if (currentIndex < lessonText.length) {
+                        const nextSpan = textWrapper.children[currentIndex];
+                        nextSpan.classList.add('current');
+                        textWrapper.style.transform = `translateY(-${nextSpan.offsetTop}px)`;
+                    }
+                } else if (!['Shift', 'CapsLock', 'Control', 'Alt'].includes(e.key)) {
+                    incorrectChars++;
+                    currentSpan.classList.add('incorrect');
+                }
+
+                updateStats();
+                highlightKeyHint();
+
+                if (currentIndex === lessonText.length) {
+                    clearInterval(timerInterval);
+                    showCongrats();
+                }
+            });
+
+            function updateStats() {
+                const wpmStat = document.getElementById('wpm-stat');
+                const accuracyStat = document.getElementById('accuracy-stat');
+                progressBar.style.width = `${(currentIndex / lessonText.length) * 100}%`;
+                const totalChars = correctChars + incorrectChars;
+                accuracyStat.textContent = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+                if (startTime) {
+                    const elapsedTime = (new Date() - startTime) / 1000 / 60;
+                    if (elapsedTime > 0) {
+                        wpmStat.textContent = Math.round((correctChars / 5) / elapsedTime);
+                    }
+                }
+            }
+            
+            function highlightKeyHint() {
+                document.querySelectorAll('.key.hint').forEach(k => k.classList.remove('hint'));
+                if (currentIndex < lessonText.length) {
+                    const nextChar = lessonText[currentIndex];
+                    let keyToHighlight = nextChar.toLowerCase();
+                    if ((nextChar >= 'A' && nextChar <= 'Z') || shiftMap[nextChar]) {
+                        document.querySelectorAll('.key[data-key="shift"]').forEach(key => key.classList.add('hint'));
+                        if (shiftMap[nextChar]) {
+                            keyToHighlight = shiftMap[nextChar];
+                        }
+                    }
+                    const keyElement = document.querySelector(`.key[data-key="${keyToHighlight}"]`);
+                    if (keyElement) {
+                        keyElement.classList.add('hint');
+                    }
+                }
+            }
+
+            function showCongrats() {
+                localStorage.setItem(`lesson9_completed`, 'true');
+                const finalWpm = document.getElementById('wpm-stat').textContent;
+                const finalAccuracy = document.getElementById('accuracy-stat').textContent;
+                document.getElementById('final-wpm').textContent = `${finalWpm} WPM`;
+                document.getElementById('final-accuracy').textContent = `${finalAccuracy}%`;
+                congratsModal.classList.add('visible');
+            }
+
+            // Start the lesson
+            initLesson();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+/* --- Virtual Keyboard --- */
+.virtual-keyboard { 
+    padding: 10px; 
+}
+.keyboard-row { 
+    display: flex; 
+    justify-content: center; 
+    margin-bottom: 8px; 
+}
+
+.key {
+    background: linear-gradient(to top, #e0e0e0, #ffffff);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 4px;
+    box-shadow: 0 4px 0 #b0b0b0, 0 6px 8px rgba(0,0,0,0.2);
+    transition: all 0.1s ease-out;
+}
+.key.active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b0b0b0;
+}
+.key.hint {
+    background: linear-gradient(to top, #4caf50, #81c784); /* Green hint */
+    color: white;
+    box-shadow: 0 4px 0 #388e3c, 0 6px 8px rgba(76, 175, 80, 0.4);
+}
+
+/* Special Key Sizes */
+.key[data-key="backspace"] { width: 130px; }
+.key[data-key="tab"], .key[data-key="\\"] { width: 95px; }
+.key[data-key="capslock"] { width: 110px; }
+.key[data-key="enter"] { width: 120px; }
+.key[data-key="shift"] { width: 150px; }
+.key[data-key=" "] { width: 420px; }
