@@ -1,0 +1,96 @@
+/* General Body Styles */
+body {
+    margin: 0;
+    font-family: 'Roboto Mono', monospace;
+    color: #f0f0f0;
+    overflow: hidden; /* Hide scrollbars */
+    background: linear-gradient(315deg, #0f0c29, #302b63, #24243e);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+/* Main Container */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Header and Title Styling */
+.main-header h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #a0a0a0;
+    margin-top: 0;
+    margin-bottom: 40px;
+}
+
+/* Typing Effect Cursor */
+.cursor {
+    display: inline-block;
+    background-color: #00eaff;
+    animation: blink 1s step-end infinite;
+}
+
+/* Start Button Styling & Animation */
+.start-btn {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.5rem;
+    padding: 15px 40px;
+    border: 2px solid #00eaff;
+    border-radius: 50px;
+    background-color: transparent;
+    color: #00eaff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px #00eaff, inset 0 0 10px #00eaff;
+    outline: none;
+}
+
+.start-btn:hover {
+    background-color: #00eaff;
+    color: #1a1a2e;
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 0 30px #00eaff, inset 0 0 15px #00eaff;
+}
+
+/* Footer Styling */
+.main-footer {
+    position: absolute;
+    bottom: 20px;
+    font-size: 0.8rem;
+    color: #6a6a6a;
+}
+
+.main-footer p {
+    margin: 5px 0;
+}
+
+/* --- Keyframe Animations --- */
+
+/* Background Gradient Movement */
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Cursor Blinking Effect */
+@keyframes blink {
+    from, to { background-color: transparent; }
+    50% { background-color: #00eaff; }
+}

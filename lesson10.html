@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 10 (Full-Screen Test) - Fun Typing!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- General & Background Styles --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(45deg, #89f7fe, #66a6ff);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            overflow: hidden;
+        }
+.back-button {
+    position: fixed; /* Keeps the button in place even on scroll */
+    top: 20px;
+    left: 20px;
+    z-index: 1000; /* Ensures it's on top of all other content */
+    
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease-in-out;
+}
+
+.back-button:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+        /* --- NEW: Start Screen Styles --- */
+        #start-screen {
+            text-align: center;
+            color: #333;
+        }
+        #start-screen h1 {
+            font-size: 4rem;
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        #start-screen p {
+            font-size: 1.2rem;
+            color: #f0f0f0;
+        }
+        #start-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        #start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.6);
+        }
+
+        /* Game container is hidden initially */
+        .game-container {
+            display: none;
+            width: 95%;
+            max-width: 1100px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* When the body is in fullscreen, ensure the game is centered */
+        body:fullscreen .game-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+
+        /* --- Stats and Progress Bar --- */
+        .stats-bar { display: flex; justify-content: space-around; margin-bottom: 15px; }
+        .stat-box { text-align: center; color: #333; width: 150px; }
+        .stat-label { font-size: 0.8rem; font-weight: 600; color: #555; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: #0077ff; line-height: 1; }
+        .stat-unit { font-size: 0.9rem; color: #444; }
+        .progress-bar-container { width: 100%; height: 15px; background-color: rgba(0, 0, 0, 0.1); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background-color: #4caf50; border-radius: 10px; transition: width 0.3s ease-out; }
+
+        /* --- Main Typing Area --- */
+        .text-to-type {
+            background: #fff; border-radius: 10px; padding: 15px 20px; font-size: 1.6rem;
+            font-family: monospace; letter-spacing: 2px; color: #aaa; margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); line-height: 1.6;
+            height: 5.2em; /* 2-line height */
+            overflow: hidden; position: relative;
+        }
+        #text-wrapper { position: relative; transition: transform 0.4s ease-in-out; }
+
+        /* Character Styling */
+        #text-wrapper span { transition: color 0.2s, background-color 0.2s; }
+        #text-wrapper span.current { color: #333; background-color: #ffdd57; border-radius: 4px; animation: pulse 1.5s infinite; }
+        #text-wrapper span.correct { color: #4caf50; }
+        #text-wrapper span.incorrect { color: #f44336; text-decoration: underline; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* --- Keyboard --- */
+        .virtual-keyboard { padding: 10px; }
+        .keyboard-row { display: flex; justify-content: center; margin-bottom: 6px; }
+        .key {
+            background: linear-gradient(to top, #e0e0e0, #ffffff); border: 1px solid #ccc; border-radius: 6px;
+            color: #333; font-size: 0.9rem; font-weight: 600; width: 50px; height: 50px;
+            display: flex; justify-content: center; align-items: center; margin: 3px;
+            box-shadow: 0 3px 0 #b0b0b0, 0 5px 6px rgba(0,0,0,0.2); transition: all 0.1s ease-out;
+        }
+        .key.active { transform: translateY(2px); box-shadow: 0 1px 0 #b0b0b0; }
+        .key.hint { background: linear-gradient(to top, #4caf50, #81c784); color: white; box-shadow: 0 3px 0 #388e3c, 0 5px 6px rgba(76, 175, 80, 0.4); }
+
+        /* Special Key Sizes */
+        .key[data-key="backspace"] { width: 106px; } .key[data-key="tab"], .key[data-key="\\"] { width: 78px; }
+        .key[data-key="capslock"] { width: 92px; } .key[data-key="enter"] { width: 100px; }
+        .key[data-key="shift"] { width: 125px; } .key[data-key=" "] { width: 350px; }
+
+        /* --- Congrats Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { background: white; color: #333; padding: 40px; border-radius: 20px; text-align: center; transform: scale(0.8); transition: transform 0.3s ease; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { font-size: 2.5rem; color: #ff9800; margin-bottom: 10px; }
+        .modal-content p { font-size: 1.2rem; margin-bottom: 20px; }
+        .final-stats { display: flex; justify-content: space-evenly; margin-bottom: 30px; font-size: 1.2rem; }
+        .final-stats strong { color: #0077ff; }
+        .next-lesson-btn { background: #4caf50; color: white; border: none; border-radius: 50px; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); transition: all 0.3s ease; }
+        .next-lesson-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6); }
+    </style>
+</head>
+<body>
+<a href="lessons.html" class="back-button">← Go Back</a>
+    <div id="start-screen">
+        <h1>Lesson 10: Final Test</h1>
+        <p>Click the button to begin in full screen!</p>
+        <button id="start-btn">Start Lesson</button>
+    </div>
+
+    <div class="game-container">
+        <div class="stats-bar">
+            </div>
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="text-to-type" class="text-to-type">
+            <div id="text-wrapper"></div>
+        </div>
+        <div id="virtual-keyboard" class="virtual-keyboard"></div>
+    </div>
+    <div id="congrats-modal" class="modal-overlay">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const gameContainer = document.querySelector('.game-container');
+            const textToTypeElement = document.getElementById('text-to-type');
+            const textWrapper = document.getElementById('text-wrapper');
+            const virtualKeyboard = document.getElementById('virtual-keyboard');
+            const wpmStat = document.getElementById('wpm-stat');
+            const accuracyStat = document.getElementById('accuracy-stat');
+            const progressBar = document.getElementById('progress-bar');
+            const congratsModal = document.getElementById('congrats-modal');
+            
+            // Lesson Data - NEW for Lesson 10 (comprehensive test)
+            const lessonText = `Final Test: "The quick brown fox," she said, "jumps over the lazy dog." This includes all 26 letters! Now for numbers: 12345 & 67890. And symbols: !@#$%^&*. You're doing a great job!`;
+            let currentIndex = 0;
+            let correctChars = 0;
+            let incorrectChars = 0;
+            let startTime = null;
+            let timerInterval = null;
+            
+            // A map for all characters that require the Shift key in this lesson
+            const shiftMap = { '"': "'", '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8' };
+
+            // --- NEW: Fullscreen and Start Logic ---
+            startBtn.addEventListener('click', () => {
+                const docEl = document.documentElement;
+                // Request fullscreen
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) { /* Safari */
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.msRequestFullscreen) { /* IE11 */
+                    docEl.msRequestFullscreen();
+                }
+
+                // Hide start screen and show the game
+                startScreen.style.display = 'none';
+                gameContainer.style.display = 'flex'; // Use flex to match our CSS for centering
+                gameContainer.style.flexDirection = 'column';
+
+                // Initialize the lesson
+                initLesson();
+            });
+
+
+            // --- 1. INITIALIZE LESSON ---
+            function initLesson() {
+                // Fill in the stats bar HTML now that the game is starting
+                document.querySelector('.stats-bar').innerHTML = `
+                    <div class="stat-box">
+                        <div class="stat-label">SPEED</div>
+                        <div id="wpm-stat" class="stat-value">0</div>
+                        <div class="stat-unit">WPM</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">ACCURACY</div>
+                        <div id="accuracy-stat" class="stat-value">100</div>
+                        <div class="stat-unit">%</div>
+                    </div>`;
+                
+                // Fill in the modal HTML
+                document.querySelector('.modal-overlay').innerHTML = `
+                    <div class="modal-content">
+                        <h2>🎉 You Did It! 🎉</h2>
+                        <p>Final Test Complete!</p>
+                        <div class="final-stats">
+                            <div>Speed: <strong id="final-wpm">0 WPM</strong></div>
+                            <div>Accuracy: <strong id="final-accuracy">100%</strong></div>
+                        </div>
+                        <button id="nextLessonBtn" class="next-lesson-btn">Finish</button>
+                    </div>`;
+                
+                textWrapper.innerHTML = lessonText.split('').map(char => `<span>${char}</span>`).join('');
+                textWrapper.children[0].classList.add('current');
+                generateKeyboard();
+                highlightKeyHint();
+                
+                // Re-add event listener for the newly created button
+                document.getElementById('nextLessonBtn').addEventListener('click', () => {
+                    // Since this is the last test, we can exit fullscreen or go back to the main menu
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                    window.location.href = 'lessons.html';
+                });
+            }
+
+            // --- 2. GENERATE KEYBOARD ---
+            function generateKeyboard() {
+                // (This function remains the same as before)
+            }
+
+            // --- 3. HANDLE USER INPUT ---
+            document.addEventListener('keydown', (e) => {
+                if (gameContainer.style.display === 'none') return; // Don't capture keys on start screen
+                e.preventDefault();
+                if (currentIndex >= lessonText.length) return;
+
+                if (!startTime) {
+                    startTime = new Date();
+                    timerInterval = setInterval(updateStats, 1000);
+                }
+
+                const currentSpan = textWrapper.children[currentIndex];
+                const expectedChar = currentSpan.textContent;
+                
+                if (e.key === expectedChar) {
+                    correctChars++;
+                    currentSpan.classList.remove('current', 'incorrect');
+                    currentSpan.classList.add('correct');
+                    currentIndex++;
+
+                    if (currentIndex < lessonText.length) {
+                        const nextSpan = textWrapper.children[currentIndex];
+                        nextSpan.classList.add('current');
+                        textWrapper.style.transform = `translateY(-${nextSpan.offsetTop}px)`;
+                    }
+
+                } else if (!['Shift', 'CapsLock', 'Control', 'Alt'].includes(e.key)) {
+                    incorrectChars++;
+                    currentSpan.classList.add('incorrect');
+                }
+
+                updateStats();
+                highlightKeyHint();
+
+                if (currentIndex === lessonText.length) {
+                    clearInterval(timerInterval);
+                    showCongrats();
+                }
+            });
+
+            // --- 4. UPDATE STATS & UI ---
+            function updateStats() {
+                const wpmEl = document.getElementById('wpm-stat');
+                const accuracyEl = document.getElementById('accuracy-stat');
+                const progressEl = document.getElementById('progress-bar');
+                if (!wpmEl || !accuracyEl || !progressEl) return;
+
+                const progress = (currentIndex / lessonText.length) * 100;
+                progressEl.style.width = `${progress}%`;
+                const totalChars = correctChars + incorrectChars;
+                const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+                accuracyEl.textContent = accuracy;
+                if (startTime) {
+                    const elapsedTime = (new Date() - startTime) / 1000 / 60;
+                    if (elapsedTime > 0) {
+                        const wpm = Math.round((correctChars / 5) / elapsedTime);
+                        wpmEl.textContent = wpm;
+                    }
+                }
+            }
+            
+            // --- The rest of the JS functions (generateKeyboard, highlightKeyHint, showCongrats) go here ---
+            // They are the same as the previous lesson, but placed inside this script tag.
+            function generateKeyboard() {
+                const keyboardLayout = [
+                    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'backspace'],
+                    ['tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+                    ['capslock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", 'enter'],
+                    ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'shift'],
+                    ['ctrl', 'alt', ' ', 'alt', 'ctrl']
+                ];
+                virtualKeyboard.innerHTML = '';
+                keyboardLayout.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'keyboard-row';
+                    row.forEach(key => {
+                        const keyDiv = document.createElement('div');
+                        keyDiv.className = 'key';
+                        keyDiv.textContent = key.length > 1 && key !== ' ' ? key.charAt(0).toUpperCase() + key.slice(1) : key;
+                        keyDiv.dataset.key = key;
+                        rowDiv.appendChild(keyDiv);
+                    });
+                    virtualKeyboard.appendChild(rowDiv);
+                });
+            }
+
+            function highlightKeyHint() {
+                document.querySelectorAll('.key.hint').forEach(k => k.classList.remove('hint'));
+                if (currentIndex < lessonText.length) {
+                    const nextChar = lessonText[currentIndex];
+                    let keyToHighlight = nextChar.toLowerCase();
+                    if ((nextChar >= 'A' && nextChar <= 'Z') || shiftMap[nextChar]) {
+                        document.querySelectorAll('.key[data-key="shift"]').forEach(key => key.classList.add('hint'));
+                        if (shiftMap[nextChar]) {
+                            keyToHighlight = shiftMap[nextChar];
+                        }
+                    }
+                    const keyElement = document.querySelector(`.key[data-key="${keyToHighlight}"]`);
+                    if (keyElement) {
+                        keyElement.classList.add('hint');
+                    }
+                }
+            }
+
+            function showCongrats() {
+                const path = window.location.pathname;
+                const match = path.match(/lesson(\d+)/);
+                const currentLessonNum = match ? parseInt(match[1]) : 0;
+                if (currentLessonNum > 0) {
+                    localStorage.setItem(`lesson${currentLessonNum}_completed`, 'true');
+                }
+                document.getElementById('final-wpm').textContent = `${document.getElementById('wpm-stat').textContent} WPM`;
+                document.getElementById('final-accuracy').textContent = `${document.getElementById('accuracy-stat').textContent}%`;
+                document.getElementById('congrats-modal').classList.add('visible');
+            }
+        });
+    </script>
+</body>
+</html>

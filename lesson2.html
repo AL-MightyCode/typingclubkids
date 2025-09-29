@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 2 - Fun Typing!</title>
+    <link rel="stylesheet" href="lesson2.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General & Background Styles --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(45deg, #89f7fe, #66a6ff);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    user-select: none;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 95%;
+    max-width: 1100px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px 30px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* --- Stats and Progress Bar --- */
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+.stat-box {
+    text-align: center;
+    color: #333;
+    width: 150px;
+}
+.stat-label { font-size: 0.8rem; font-weight: 600; color: #555; }
+.stat-value { font-size: 2.5rem; font-weight: 700; color: #0077ff; line-height: 1; }
+.stat-unit { font-size: 0.9rem; color: #444; }
+
+.progress-bar-container {
+    width: 100%;
+    height: 15px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 10px;
+    transition: width 0.3s ease-out;
+}
+
+/* --- Main Typing Area --- */
+.text-to-type {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 1.8rem;
+    font-family: monospace;
+    letter-spacing: 2px;
+    white-space: pre;
+    color: #aaa;
+    margin-bottom: 30px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Character Styling */
+.text-to-type span {
+    transition: color 0.2s, background-color 0.2s;
+}
+.text-to-type span.current {
+    color: #333;
+    background-color: #ffdd57; /* Yellow highlight for current letter */
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+}
+.text-to-type span.correct {
+    color: #4caf50; /* Green for correct */
+}
+.text-to-type span.incorrect {
+    color: #f44336; /* Red for incorrect */
+    text-decoration: underline;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* --- Virtual Keyboard --- */
+.virtual-keyboard { padding: 10px; }
+.keyboard-row { display: flex; justify-content: center; margin-bottom: 8px; }
+
+.key {
+    background: linear-gradient(to top, #e0e0e0, #ffffff);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 4px;
+    box-shadow: 0 4px 0 #b0b0b0, 0 6px 8px rgba(0,0,0,0.2);
+    transition: all 0.1s ease-out;
+}
+.key.active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b0b0b0;
+}
+.key.hint {
+    background: linear-gradient(to top, #4caf50, #81c784); /* Green hint */
+    color: white;
+    box-shadow: 0 4px 0 #388e3c, 0 6px 8px rgba(76, 175, 80, 0.4);
+}
+
+/* Special Key Sizes */
+.key[data-key="backspace"] { width: 130px; }
+.key[data-key="tab"], .key[data-key="\\"] { width: 95px; }
+.key[data-key="capslock"] { width: 110px; }
+.key[data-key="enter"] { width: 120px; }
+.key[data-key="shift"] { width: 150px; }
+.key[data-key=" "] { width: 420px; }
+
+/* --- Congrats Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; visibility: hidden; transition: all 0.3s ease;
+    z-index: 100;
+}
+.modal-overlay.visible { opacity: 1; visibility: visible; }
+.modal-content {
+    background: white; color: #333; padding: 40px; border-radius: 20px; text-align: center;
+    transform: scale(0.8); transition: transform 0.3s ease;
+}
+.modal-overlay.visible .modal-content { transform: scale(1); }
+.modal-content h2 { font-size: 2.5rem; color: #ff9800; margin-bottom: 10px; }
+.modal-content p { font-size: 1.2rem; margin-bottom: 20px; }
+.final-stats { display: flex; justify-content: space-evenly; margin-bottom: 30px; font-size: 1.2rem; }
+.final-stats strong { color: #0077ff; }
+
+.next-lesson-btn {
+    background: #4caf50; color: white; border: none; border-radius: 50px;
+    padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); transition: all 0.3s ease;
+}
+.next-lesson-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6); }
+    
+    .back-button {
+    position: fixed; /* Keeps the button in place even on scroll */
+    top: 20px;
+    left: 20px;
+    z-index: 1000; /* Ensures it's on top of all other content */
+    
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease-in-out;
+}
+
+.back-button:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+    
+    </style>
+</head>
+<body>
+    <a href="lessons.html" class="back-button">← Go Back</a>
+    <div class="game-container">
+        
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-label">SPEED</div>
+                <div id="wpm-stat" class="stat-value">0</div>
+                <div class="stat-unit">WPM</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">ACCURACY</div>
+                <div id="accuracy-stat" class="stat-value">100</div>
+                <div class="stat-unit">%</div>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div id="text-to-type" class="text-to-type">
+            </div>
+
+        <div id="virtual-keyboard" class="virtual-keyboard">
+            </div>
+
+    </div>
+
+    <div id="congrats-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🏆 Great Job! 🏆</h2>
+            <p>Lesson 2 Complete!</p>
+            <div class="final-stats">
+                <div>Speed: <strong id="final-wpm">0 WPM</strong></div>
+                <div>Accuracy: <strong id="final-accuracy">100%</strong></div>
+            </div>
+            <button id="nextLessonBtn" class="next-lesson-btn">Next Lesson</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const textToTypeElement = document.getElementById('text-to-type');
+    const virtualKeyboard = document.getElementById('virtual-keyboard');
+    const wpmStat = document.getElementById('wpm-stat');
+    const accuracyStat = document.getElementById('accuracy-stat');
+    const progressBar = document.getElementById('progress-bar');
+    const congratsModal = document.getElementById('congrats-modal');
+    
+    // Lesson Data - NEW for Lesson 2
+    const lessonText = "I see a red car. Dad runs fast. A nice meal is served.";
+    let currentIndex = 0;
+    let correctChars = 0;
+    let incorrectChars = 0;
+    let startTime = null;
+    let timerInterval = null;
+
+    // --- 1. INITIALIZE LESSON ---
+    function initLesson() {
+        textToTypeElement.innerHTML = lessonText.split('').map(char => `<span>${char}</span>`).join('');
+        textToTypeElement.children[0].classList.add('current');
+        generateKeyboard();
+        highlightKeyHint();
+    }
+
+    // --- 2. GENERATE KEYBOARD ---
+    function generateKeyboard() {
+        const keyboardLayout = [
+            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'backspace'],
+            ['tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+            ['capslock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'", 'enter'],
+            ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'shift'],
+            ['ctrl', 'alt', ' ', 'alt', 'ctrl']
+        ];
+        virtualKeyboard.innerHTML = '';
+        keyboardLayout.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'keyboard-row';
+            row.forEach(key => {
+                const keyDiv = document.createElement('div');
+                keyDiv.className = 'key';
+                keyDiv.textContent = key.length > 1 && key !== ' ' ? key.charAt(0).toUpperCase() + key.slice(1) : key;
+                keyDiv.dataset.key = key;
+                rowDiv.appendChild(keyDiv);
+            });
+            virtualKeyboard.appendChild(rowDiv);
+        });
+    }
+
+    // --- 3. HANDLE USER INPUT ---
+    document.addEventListener('keydown', (e) => {
+        e.preventDefault();
+        if (currentIndex >= lessonText.length) return;
+
+        if (!startTime) {
+            startTime = new Date();
+            timerInterval = setInterval(updateStats, 1000);
+        }
+
+        const currentSpan = textToTypeElement.children[currentIndex];
+        const expectedChar = currentSpan.textContent;
+        const pressedKey = e.key;
+
+        const keyElement = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`) || document.querySelector(`.key[data-key="${e.code.toLowerCase()}"]`);
+        if (keyElement) {
+            keyElement.classList.add('active');
+            setTimeout(() => keyElement.classList.remove('active'), 100);
+        }
+        
+        if (pressedKey === expectedChar) {
+            correctChars++;
+            currentSpan.classList.remove('current', 'incorrect');
+            currentSpan.classList.add('correct');
+            currentIndex++;
+            if (currentIndex < lessonText.length) {
+                textToTypeElement.children[currentIndex].classList.add('current');
+            }
+        } else if (e.code !== 'ShiftLeft' && e.code !== 'ShiftRight' && e.code !== 'CapsLock' && e.code !== 'ControlLeft' && e.code !== 'AltLeft') {
+            incorrectChars++;
+            currentSpan.classList.add('incorrect');
+        }
+
+        updateStats();
+        highlightKeyHint();
+
+        if (currentIndex === lessonText.length) {
+            clearInterval(timerInterval);
+            showCongrats();
+        }
+    });
+
+    // --- 4. UPDATE STATS & UI ---
+    function updateStats() {
+        const progress = (currentIndex / lessonText.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        const totalChars = correctChars + incorrectChars;
+        const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+        accuracyStat.textContent = accuracy;
+
+        if (startTime) {
+            const elapsedTime = (new Date() - startTime) / 1000 / 60;
+            if (elapsedTime > 0) {
+                const wpm = Math.round((correctChars / 5) / elapsedTime);
+                wpmStat.textContent = wpm;
+            }
+        }
+    }
+    
+    // UPDATED to handle Shift key highlighting
+    function highlightKeyHint() {
+        document.querySelectorAll('.key.hint').forEach(k => k.classList.remove('hint'));
+        if (currentIndex < lessonText.length) {
+            const nextChar = lessonText[currentIndex];
+            const nextKey = nextChar.toLowerCase();
+
+            // If the character is uppercase, highlight the shift key too
+            if (nextChar !== nextKey) { // This means it's an uppercase letter
+                const shiftKeys = document.querySelectorAll('.key[data-key="shift"]');
+                shiftKeys.forEach(key => key.classList.add('hint'));
+            }
+
+            const keyElement = document.querySelector(`.key[data-key="${nextKey}"]`);
+            if (keyElement) {
+                keyElement.classList.add('hint');
+            }
+        }
+    }
+
+    // --- 5. SHOW COMPLETION MODAL ---
+    function showCongrats() {
+        document.getElementById('final-wpm').textContent = `${wpmStat.textContent} WPM`;
+        document.getElementById('final-accuracy').textContent = `${accuracyStat.textContent}%`;
+        congratsModal.classList.add('visible');
+    }
+    
+    document.getElementById('nextLessonBtn').addEventListener('click', () => {
+        // For now, redirect back to the main lesson list
+        window.location.href = 'lessons.html'; 
+    });
+
+    // --- Start the lesson! ---
+    initLesson();
+});
+    </script>
+</body>
+</html>
